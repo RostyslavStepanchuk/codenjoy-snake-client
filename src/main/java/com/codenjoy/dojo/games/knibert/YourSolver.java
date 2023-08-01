@@ -24,6 +24,7 @@ package com.codenjoy.dojo.games.knibert;
 
 
 import com.codenjoy.dojo.client.Solver;
+import com.codenjoy.dojo.games.knibert.solver.Navigator;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Direction;
 
@@ -46,11 +47,13 @@ public class YourSolver implements Solver<Board> {
 
     @Override
     public String get(Board board) {
-        this.board = board;
-        System.out.println(board.toString());
+        try {
+            this.board = board;
+            System.out.println(board.toString());
+            return new Navigator(board).getMove();
+        } catch (Exception e) {
+            return Direction.UP.toString();
+        }
 
-        // TODO your code here
-
-        return Direction.UP.toString();
     }
 }
