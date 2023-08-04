@@ -1,6 +1,5 @@
 package com.codenjoy.dojo.games.knibert.solver;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -9,42 +8,28 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import com.codenjoy.dojo.games.knibert.solver.exceptions.AlgorithmErrorException;
 import com.codenjoy.dojo.services.Point;
-import com.codenjoy.dojo.services.PointImpl;
+import com.google.common.annotations.VisibleForTesting;
 
-final class LeeAlgorithm {
-
-  private final List<Point> deltas;
+class LeeAlgorithm {
 
   private final BoardModel field;
+  private final Cursor cursor;
 
-  public LeeAlgorithm(BoardModel field) {
+  public LeeAlgorithm(BoardModel field, Cursor cursor) {
     this.field = field;
-    deltas = new ArrayList<>();
-    deltas.add(new PointImpl(0, -1));
-    deltas.add(new PointImpl(-1, 0));
-    deltas.add(new PointImpl(1, 0));
-    deltas.add(new PointImpl(0, 1));
+    this.cursor = cursor;
   }
 
-  private List<Point> getNearestAvailablePoints(Point point) {
-    return deltas
+  @VisibleForTesting
+  protected List<Point> getNearestAvailablePoints(Point point) {
+    return cursor.getNearestPoints(point)
         .stream()
-        .map(d -> moveFromPoint(point, d))
         .filter(p -> field.isEmpty(p) || field.isApple(p))
         .collect(Collectors.toList());
   }
 
-  private Point getNearestPointWithMark(Point point, int mark) {
-    return deltas
-        .stream()
-        .map(d -> moveFromPoint(point, d))
-        .filter(p -> field.get(p) == mark)
-        .findFirst()
-        .orElseThrow(()->new AlgorithmErrorException(String.format("Unable to find %d mark "
-            + "near point %s", mark, point)));
-  }
-
-  private List<Point> getNearestAvailablePoints(List<Point> points) {
+  @VisibleForTesting
+  protected List<Point> getNearestAvailablePoints(List<Point> points) {
     return points
         .stream()
         .map(this::getNearestAvailablePoints)
@@ -53,43 +38,46 @@ final class LeeAlgorithm {
         .collect(Collectors.toList());
   }
 
-  private Point moveFromPoint(Point point, Point delta) {
-    Point cursor = point.copy();
-    cursor.moveDelta(delta);
-    return cursor;
+  @VisibleForTesting
+  protected Point getNearestPointWithMark(Point point, int mark) {
+    return cursor.getNearestPoints(point)
+        .stream()
+        .filter(p -> field.get(p) == mark)
+        .findFirst()
+        .orElseThrow(() -> new AlgorithmErrorException(String.format("Unable to find %d mark "
+            + "near point %s", mark, point)));
   }
 
-  List<Point> getShortestRouteToTarget(Point start, Point target) {
+  public List<Point> getShortestRouteToTarget(Point start, Point target) {
     List<Point> toSearchForward = List.of(start);
-    int [] stepNo = new int[1];
+    int[] stepNo = new int[1];
     boolean targetFound = false;
-    while (!toSearchForward.isEmpty()) {
+    while (!toSearchForward.isEmpty() && !targetFound) {
       toSearchForward = getNearestAvailablePoints(toSearchForward);
       Optional<Point> foundTarget = toSearchForward.stream()
           .filter(target::equals)
           .findFirst();
       if (foundTarget.isPresent()) {
-        toSearchForward = Collections.emptyList();
         targetFound = true;
       } else {
         stepNo[0]++;
         toSearchForward.forEach(p -> field.set(p, stepNo[0]));
-        System.out.println(field);
       }
     }
-      if (targetFound) {
-        return traceRouteToStart(stepNo, target);
-      } else {
-        return Collections.emptyList();
-      }
+    if (targetFound) {
+      return traceRouteToStart(stepNo, target);
+    } else {
+      return Collections.emptyList();
+    }
   }
 
-  private List<Point> traceRouteToStart(int[] stepNo, Point target) {
+  @VisibleForTesting
+  protected List<Point> traceRouteToStart(int[] stepNo, Point target) {
     LinkedList<Point> route = new LinkedList<>();
     route.add(target);
-    while (stepNo[0] > 0){
-      Point cursor = getNearestPointWithMark(route.getFirst(), stepNo[0]);
-      route.addFirst(cursor);
+    while (stepNo[0] > 0) {
+      Point step = getNearestPointWithMark(route.getFirst(), stepNo[0]);
+      route.addFirst(step);
       stepNo[0]--;
     }
     return route;

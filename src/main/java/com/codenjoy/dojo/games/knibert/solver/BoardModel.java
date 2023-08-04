@@ -5,26 +5,28 @@ import java.util.List;
 import com.codenjoy.dojo.games.knibert.Board;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
+import com.google.common.annotations.VisibleForTesting;
 
-final class BoardModel {
+class BoardModel {
 
-  private final static int DIMX = 15;
-  private final static int DIMY = 15;
+  private static final int DIMX = 15;
+  private static final int DIMY = 15;
   private final int[][] field;
 
-  final static int BARRIER = -5;
-  final static int HEAD = -10;
-  final static int SNAKE_TAIL = -20;
-  final static int STONE = -4;
-  final static int APPLE = 100;
-  final static int EMPTY = 0;
+  static final int BARRIER = -5;
+  static final int HEAD = -10;
+  static final int SNAKE_TAIL = -20;
+  static final int STONE = -4;
+  static final int APPLE = 100;
+  static final int EMPTY = 0;
 
   BoardModel(Board board) {
     this.field = new int [DIMX][DIMY];
     setEnvironment(board);
   }
 
-  void setEnvironment(Board board) {
+  @VisibleForTesting
+  protected void setEnvironment(Board board) {
     board.getBarriers().forEach(barrier->set(barrier,BARRIER));
     board.getHero().forEach(tailPoint->set(tailPoint, SNAKE_TAIL));
     set (board.getHead(), HEAD);
