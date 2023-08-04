@@ -73,7 +73,7 @@ public class YourSolverTest {
                 "☼  ╙  ☼" +
                 "☼ ☻   ☼" +
                 "☼    ☺☼" +
-                "☼☼☼☼☼☼☼", Direction.UP);
+                "☼☼☼☼☼☼☼", Direction.RIGHT);
 
     }
 
