@@ -10,18 +10,20 @@ package com.codenjoy.dojo.games.knibert;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
+
+import static java.util.Objects.isNull;
 
 import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.games.knibert.solver.Navigator;
@@ -30,7 +32,7 @@ import com.codenjoy.dojo.services.Direction;
 
 /**
  * Author: your name
- *
+ * <p>
  * This is your AI algorithm for the game.
  * Implement it at your own discretion.
  * Pay attention to {@link YourSolverTest} - there is
@@ -38,23 +40,28 @@ import com.codenjoy.dojo.services.Direction;
  */
 public class YourSolver implements Solver<Board> {
 
-    private Dice dice;
-    private Board board;
+  private Dice dice;
+  private Board board;
 
-    public YourSolver(Dice dice) {
-        this.dice = dice;
+  public YourSolver(Dice dice) {
+    this.dice = dice;
+  }
+
+  @Override
+  public String get(Board board) {
+    try {
+      this.board = board;
+
+      if (isNull(board.getHead())) { // when snake crushes a wall the head is null
+        return null;
+      }
+
+      System.out.println(board.toString());
+      return new Navigator(board).getMove();
+    } catch (Exception e) {
+      System.out.print(e);
+      return Direction.UP.toString();
     }
 
-    @Override
-    public String get(Board board) {
-        try {
-            this.board = board;
-            System.out.println(board.toString());
-            return new Navigator(board).getMove();
-        } catch (Exception e) {
-            System.out.print(e);
-            return Direction.UP.toString();
-        }
-
-    }
+  }
 }

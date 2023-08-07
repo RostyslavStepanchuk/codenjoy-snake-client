@@ -22,20 +22,16 @@ package com.codenjoy.dojo;
  * #L%
  */
 
-import com.codenjoy.dojo.client.ClientBoard;
-import com.codenjoy.dojo.client.OneCommandSolver;
-import com.codenjoy.dojo.client.WebSocketRunner;
-import com.codenjoy.dojo.utils.PrintUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static com.codenjoy.dojo.client.runner.ReflectLoader.loadJavaBoard;
 import static com.codenjoy.dojo.client.runner.ReflectLoader.loadJavaSolver;
 import static com.codenjoy.dojo.utils.PrintUtils.Color.INFO;
 
-public class JavaRunner {
+import com.codenjoy.dojo.client.ClientBoard;
+import com.codenjoy.dojo.client.OneCommandSolver;
+import com.codenjoy.dojo.client.WebSocketRunner;
+import com.codenjoy.dojo.utils.PrintUtils;
 
-    private static Logger log = LoggerFactory.getLogger(JavaRunner.class);
+public class JavaRunner {
 
     // Select your game
     private String game = "knibert";
