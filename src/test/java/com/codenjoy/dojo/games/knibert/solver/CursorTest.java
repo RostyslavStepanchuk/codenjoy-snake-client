@@ -1,5 +1,9 @@
 package com.codenjoy.dojo.games.knibert.solver;
 
+import static com.codenjoy.dojo.services.Direction.DOWN;
+import static com.codenjoy.dojo.services.Direction.LEFT;
+import static com.codenjoy.dojo.services.Direction.RIGHT;
+import static com.codenjoy.dojo.services.Direction.UP;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
@@ -49,9 +53,9 @@ class CursorTest {
     PointImpl left = new PointImpl(1, 2);
     PointImpl right = new PointImpl(3, 2);
 
-    assertEquals(Direction.UP, subject.getDirection(start, upper));
+    assertEquals(UP, subject.getDirection(start, upper));
     assertEquals(Direction.DOWN, subject.getDirection(start, lower));
-    assertEquals(Direction.LEFT, subject.getDirection(start, left));
+    assertEquals(LEFT, subject.getDirection(start, left));
     assertEquals(Direction.RIGHT, subject.getDirection(start, right));
   }
 
@@ -66,5 +70,22 @@ class CursorTest {
     assertThrows(AlgorithmErrorException.class, () -> subject.getDirection(start, farUp));
     assertThrows(AlgorithmErrorException.class, () -> subject.getDirection(start, diagonal));
     assertThrows(AlgorithmErrorException.class, () -> subject.getDirection(start, farRight));
+  }
+
+  @Test
+  @DisplayName("moveToDirection - returns next point in direction")
+  void moveToDirection_returnsNextPointInDirection() {
+    // given
+    Point start = new PointImpl(3, 3);
+    Point upperPoint = new PointImpl(3, 4);
+    Point lowerPoint = new PointImpl(3, 2);
+    Point rightPoint = new PointImpl(4, 3);
+    Point leftPoint = new PointImpl(2, 3);
+
+    // when & then
+    assertEquals(upperPoint, subject.moveToDirection(start, UP));
+    assertEquals(lowerPoint, subject.moveToDirection(start, DOWN));
+    assertEquals(rightPoint, subject.moveToDirection(start, RIGHT));
+    assertEquals(leftPoint, subject.moveToDirection(start, LEFT));
   }
 }

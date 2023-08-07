@@ -1,6 +1,6 @@
 package com.codenjoy.dojo.games.knibert.solver;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -13,11 +13,14 @@ class Cursor {
 
   private static Cursor cursor;
 
-  private final Map<Direction, Point> deltas = new HashMap<>();
-  private final Point DELTA_UP = new PointImpl(0, 1);
-  private final Point DELTA_DOWN = new PointImpl(0, -1);
-  private final Point DELTA_LEFT = new PointImpl(-1, 0);
-  private final Point DELTA_RIGHT = new PointImpl(1, 0);
+  private static final Map<Direction, Point> deltas = new EnumMap<>(Direction.class);
+
+  static {
+    deltas.put(Direction.UP, new PointImpl(0, 1));
+    deltas.put(Direction.DOWN, new PointImpl(0, -1));
+    deltas.put(Direction.RIGHT, new PointImpl(1, 0));
+    deltas.put(Direction.LEFT, new PointImpl(-1, 0));
+  }
 
   public static Cursor getCursor() {
     if (cursor == null) {
@@ -27,10 +30,6 @@ class Cursor {
   }
 
   private Cursor() {
-    deltas.put(Direction.UP, DELTA_UP);
-    deltas.put(Direction.DOWN, DELTA_DOWN);
-    deltas.put(Direction.RIGHT, DELTA_RIGHT);
-    deltas.put(Direction.LEFT, DELTA_LEFT);
   }
 
   public List<Point> getNearestPoints(Point point) {
@@ -54,7 +53,12 @@ class Cursor {
         .filter(entry -> offset.equals(entry.getValue()))
         .findFirst()
         .map(Map.Entry::getKey)
-        .orElseThrow(()-> new AlgorithmErrorException(String.format("Unable to get direction "
+        .orElseThrow(() -> new AlgorithmErrorException(String.format("Unable to get direction "
             + "from point %s to %s", current, target)));
   }
+
+  public Point moveToDirection(Point start, Direction direction) {
+    return moveFromPoint(start, deltas.get(direction));
+  }
+
 }

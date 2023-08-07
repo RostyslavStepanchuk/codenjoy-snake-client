@@ -52,6 +52,7 @@ public class YourSolver implements Solver<Board> {
             System.out.println(board.toString());
             return new Navigator(board).getMove();
         } catch (Exception e) {
+            System.out.print(e);
             return Direction.UP.toString();
         }
 
