@@ -1,6 +1,8 @@
 package com.codenjoy.dojo.games.knibert.solver;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -8,18 +10,21 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import com.codenjoy.dojo.games.knibert.solver.exceptions.AlgorithmErrorException;
 import com.codenjoy.dojo.services.Point;
-import com.codenjoy.dojo.services.PointImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,8 +44,9 @@ class LeeAlgorithmTest {
   @Mock
   private Point start;
 
-  @Test
-  void getShortestRouteToTarget() {
+  @BeforeEach
+  void setup(){
+    subject.setField(field);
   }
 
   @Test
@@ -272,6 +278,7 @@ class LeeAlgorithmTest {
     doReturn(List.of(point3)).when(subject).getNearestAvailablePoints(List.of(point1, point2));
     doReturn(List.of(target)).when(subject).getNearestAvailablePoints(List.of(point3));
     doReturn(Collections.emptyList()).when(subject).traceRouteToStart(expectedSteps, target);
+    doReturn(new LinkedList<Point>()).when(field).getSnake();
 
     // when
     subject.getShortestRouteToTarget(start, target);
@@ -293,11 +300,41 @@ class LeeAlgorithmTest {
     doReturn(List.of(point1, point2)).when(subject).getNearestAvailablePoints(List.of(start));
     doReturn(List.of(point3)).when(subject).getNearestAvailablePoints(List.of(point1, point2));
     doReturn(Collections.emptyList()).when(subject).getNearestAvailablePoints(List.of(point3));
+    doReturn(new LinkedList<Point>()).when(field).getSnake();
 
     // when
     List<Point> actual = subject.getShortestRouteToTarget(start, target);
 
     // then
     assertTrue(actual.isEmpty());
+  }
+
+  @Test
+  @DisplayName("getShortestRouteToTarget - clears tail point before each algo step")
+  void getShortestRouteToTarget_clearsTailPointBeforeEachStep() {
+    Point target = mock(Point.class);
+    Point point1 = mock(Point.class);
+    Point point2 = mock(Point.class);
+    Point point3 = mock(Point.class);
+    Point snake1 = mock(Point.class);
+    Point snake2 = mock(Point.class);
+    Point snake3 = mock(Point.class);
+
+    doReturn(List.of(point1, point2)).when(subject).getNearestAvailablePoints(List.of(start));
+    doReturn(List.of(point3)).when(subject).getNearestAvailablePoints(List.of(point1, point2));
+    doReturn(Collections.emptyList()).when(subject).getNearestAvailablePoints(List.of(point3));
+    doReturn(new LinkedList<>(Arrays.asList(snake1, snake2, snake3))).when(field).getSnake();
+
+    // when
+    subject.getShortestRouteToTarget(start, target);
+
+    // then
+    InOrder inOrder = Mockito.inOrder(subject, field);
+    inOrder.verify(field).clear(snake3);
+    inOrder.verify(subject).getNearestAvailablePoints(List.of(start));
+    inOrder.verify(field).clear(snake2);
+    inOrder.verify(subject).getNearestAvailablePoints(List.of(point1, point2));
+    inOrder.verify(field).clear(snake1);
+    inOrder.verify(subject).getNearestAvailablePoints(List.of(point3));
   }
 }

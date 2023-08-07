@@ -2,6 +2,7 @@ package com.codenjoy.dojo.games.knibert.solver;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -12,12 +13,15 @@ import com.google.common.annotations.VisibleForTesting;
 
 class LeeAlgorithm {
 
-  private final BoardModel field;
   private final Cursor cursor;
+  private BoardModel field;
 
-  public LeeAlgorithm(BoardModel field, Cursor cursor) {
-    this.field = field;
+  public LeeAlgorithm(Cursor cursor) {
     this.cursor = cursor;
+  }
+
+  public void setField(BoardModel field) {
+    this.field = field;
   }
 
   @VisibleForTesting
@@ -52,7 +56,14 @@ class LeeAlgorithm {
     List<Point> toSearchForward = List.of(start);
     int[] stepNo = new int[1];
     boolean targetFound = false;
+
+    Iterator<Point> snakeIterator = field.getSnake().descendingIterator();
+
     while (!toSearchForward.isEmpty() && !targetFound) {
+      // on every step of Lee algo we expect that snake tale will move by one point as well
+      if (snakeIterator.hasNext()) {
+        field.clear(snakeIterator.next());
+      }
       toSearchForward = getNearestAvailablePoints(toSearchForward);
       Optional<Point> foundTarget = toSearchForward.stream()
           .filter(target::equals)

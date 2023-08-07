@@ -1,6 +1,7 @@
 package com.codenjoy.dojo.games.knibert.solver;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import com.codenjoy.dojo.games.knibert.Board;
 import com.codenjoy.dojo.services.Point;
@@ -15,10 +16,12 @@ class BoardModel {
 
   static final int BARRIER = -5;
   static final int HEAD = -10;
-  static final int SNAKE_TAIL = -20;
+  static final int SNAKE_STEP = -10;
   static final int STONE = -4;
   static final int APPLE = 100;
   static final int EMPTY = 0;
+
+  private LinkedList<Point> snake;
 
   BoardModel(Board board) {
     this.field = new int [DIMX][DIMY];
@@ -28,10 +31,17 @@ class BoardModel {
   @VisibleForTesting
   protected void setEnvironment(Board board) {
     board.getBarriers().forEach(barrier->set(barrier,BARRIER));
-    board.getHero().forEach(tailPoint->set(tailPoint, SNAKE_TAIL));
-    set (board.getHead(), HEAD);
     board.getApples().forEach(apple -> set(apple, APPLE));
     board.getStones().forEach(stone->set(stone,STONE));
+  }
+
+  public void setSnake(LinkedList<Point> snake) {
+    int stepValue = HEAD;
+    for (Point point : snake) {
+      set(point, stepValue);
+      stepValue += SNAKE_STEP;
+    }
+    this.snake = snake;
   }
 
   int get(Point point) {
@@ -55,17 +65,26 @@ class BoardModel {
     switch (val) {
       case EMPTY: return " . ";
       case BARRIER: return "XXX";
-      case SNAKE_TAIL: return " o ";
       case HEAD: return " O ";
       case APPLE: return " A ";
       case STONE: return " S ";
       default:
-        if (path.isEmpty() || path.contains(point)) {
+        if (val < HEAD) {
+          return String.format("%3d", val);
+        } else if (path.isEmpty() || path.contains(point)) {
           return String.format("%3d", val);
         } else {
           return " . ";
         }
     }
+  }
+
+  public LinkedList<Point> getSnake() {
+    return snake;
+  }
+
+  public void clear(Point point) {
+    set(point, EMPTY);
   }
 
   @Override
