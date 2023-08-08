@@ -70,8 +70,8 @@ public class YourSolverTest {
         asertAI("☼☼☼☼☼☼☼" +
                 "☼     ☼" +
                 "☼  ▲  ☼" +
-                "☼  ╙  ☼" +
-                "☼ ☻   ☼" +
+                "☼  ║  ☼" +
+                "☼ ☻╙  ☼" +
                 "☼    ☺☼" +
                 "☼☼☼☼☼☼☼", Direction.RIGHT);
 
