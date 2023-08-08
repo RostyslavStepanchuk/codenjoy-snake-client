@@ -23,8 +23,7 @@ package com.codenjoy.dojo.games.knibert;
  */
 
 
-import static java.util.Objects.isNull;
-
+import java.util.Date;
 import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.games.knibert.solver.Navigator;
 import com.codenjoy.dojo.services.Dice;
@@ -51,17 +50,19 @@ public class YourSolver implements Solver<Board> {
   public String get(Board board) {
     try {
       this.board = board;
+      long startTime = new Date().getTime();
 
-      if (isNull(board.getHead())) { // when snake crushes a wall the head is null
+      if (board.isGameOver()) {
         return null;
       }
 
       System.out.println(board.toString());
-      return new Navigator(board).getMove();
+      String solution = new Navigator(board).findSolution();
+      System.out.printf("Time used: %d%n", new Date().getTime() - startTime);
+      return solution;
     } catch (Exception e) {
       System.out.print(e);
       return Direction.UP.toString();
     }
-
   }
 }

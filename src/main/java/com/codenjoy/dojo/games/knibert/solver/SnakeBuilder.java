@@ -65,7 +65,9 @@ public class SnakeBuilder {
     LinkedList<Point> snake = new LinkedList<>();
     Optional<Point> nextPoint = Optional.of(board.getHead());
 
-    while (nextPoint.isPresent()){
+    while (nextPoint.isPresent()
+    && snake.size() < board.getHero().size()){ // due to board bug, when head crushes into tail
+      // board.isGameOver still returns false and snake builder runs in loops eternally
       snake.add(nextPoint.get());
       nextPoint = tailDirections.get(board.getAt(snake.getLast()))
           .stream()

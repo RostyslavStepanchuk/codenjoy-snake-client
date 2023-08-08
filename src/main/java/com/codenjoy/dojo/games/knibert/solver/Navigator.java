@@ -35,14 +35,22 @@ public class Navigator {
     this.field = field;
   }
 
-  public String getMove() {
+  public String findSolution() {
+    try {
+      return getMove();
+    } catch (Exception e) {
+      return moveNearestSafePoint(board);
+    }
+  }
+
+  @VisibleForTesting
+  protected String getMove() {
     setupInitialField();
     List<Point> shortestRoute = leeAlgorithm.getShortestRouteToTarget(
         board.getHead(),
         board.getApples().get(0));
     if (shortestRoute.isEmpty()) {
-      // TODO: handle scenario
-      return Direction.UP.toString();
+      return moveNearestSafePoint(board);
     }
     return cursor.getDirection(board.getHead(), shortestRoute.get(0)).toString();
   }
@@ -53,4 +61,16 @@ public class Navigator {
     field.setSnake(snake);
     leeAlgorithm.setField(field);
   }
+
+  protected String moveNearestSafePoint(Board board) {
+    Point nextPoint = cursor.getNearestPoints(board.getHead())
+        .stream()
+        .filter(p -> !board.getHero().contains(p))
+        .filter(p -> !board.getBarriers().contains(p))
+        .findFirst()
+        // direction doesn't matter we're f****d up anyway
+        .orElseGet(() -> cursor.moveToDirection(board.getHead(), Direction.UP));
+    return cursor.getDirection(board.getHead(), nextPoint).toString();
+  }
+
 }

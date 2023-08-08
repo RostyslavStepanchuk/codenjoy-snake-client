@@ -1,9 +1,11 @@
 package com.codenjoy.dojo.games.knibert.solver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -12,6 +14,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import com.codenjoy.dojo.games.knibert.Board;
+import com.codenjoy.dojo.games.knibert.solver.exceptions.AlgorithmErrorException;
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
 import org.junit.jupiter.api.DisplayName;
@@ -47,12 +50,38 @@ class NavigatorTest {
   private SnakeBuilder snakeBuilder;
 
   @Test
+  @DisplayName("findSolution - gets next move")
+  void findSolution_getsNextMove() {
+    // given
+    String expected = Direction.UP.toString();
+    doReturn(expected).when(subject).getMove();
+
+    String actual = subject.findSolution();
+    assertEquals(expected, actual);
+    verify(subject).getMove();
+  }
+
+  @Test
+  @DisplayName("findSolution - goes to nearest safe point in case of Error")
+  void findSolution_goesNearestSafeIfError() {
+    // given
+    doThrow(AlgorithmErrorException.class).when(subject).getMove();
+    String expected = Direction.UP.toString();
+    doReturn(expected).when(subject).moveNearestSafePoint(any());
+
+    String actual = subject.findSolution();
+    assertEquals(expected, actual);
+    verify(subject).moveNearestSafePoint(board);
+  }
+
+  @Test
   @DisplayName("getMove - sets up field before launching algo")
   void getMove_setupsFieldBeforeAlgo() {
     // given
     doReturn(List.of(mock(Point.class))).when(board).getApples();
     doReturn(Collections.emptyList()).when(leeAlgorithm).getShortestRouteToTarget(any(), any());
     doNothing().when(subject).setupInitialField();
+    doReturn(Direction.UP.toString()).when(subject).moveNearestSafePoint(any());
 
     // when
     subject.getMove();
@@ -73,6 +102,7 @@ class NavigatorTest {
     doReturn(head).when(board).getHead();
     doReturn(List.of(apple)).when(board).getApples();
     doReturn(Collections.emptyList()).when(leeAlgorithm).getShortestRouteToTarget(any(), any());
+    doReturn(Direction.UP.toString()).when(subject).moveNearestSafePoint(any());
     doNothing().when(subject).setupInitialField();
 
     // when & then
@@ -81,12 +111,15 @@ class NavigatorTest {
   }
 
   @Test
-  @DisplayName("getMove - goes UP if leeAlgorithm returns empty route")
+  @DisplayName("getMove - goes nearest safe point if leeAlgorithm returns empty route")
   void getMove_goesUpIfLeeAlgoFails() {
     doReturn(List.of(mock(Point.class))).when(board).getApples();
     doReturn(Collections.emptyList()).when(leeAlgorithm).getShortestRouteToTarget(any(), any());
     doNothing().when(subject).setupInitialField();
+    doReturn(Direction.UP.toString()).when(subject).moveNearestSafePoint(any());
+    // when & then
     assertEquals(Direction.UP.toString(), subject.getMove());
+    verify(subject).moveNearestSafePoint(board);
   }
 
   @Test
@@ -144,10 +177,62 @@ class NavigatorTest {
   }
 
   @Test
-  @DisplayName("setupInitialField - provides field to Lee Algori")
+  @DisplayName("setupInitialField - provides field to Lee Algorithm")
   void setupInitialField_providesFieldToAlgorithm() {
     subject.setupInitialField();
     verify(leeAlgorithm).setField(field);
+  }
+
+  @Test
+  @DisplayName("moveNearestSafePoint - gets nearest points")
+  void moveNearestSafePoint_getsNearestPoints() {
+    Point head = mock(Point.class);
+    Point neighbor = mock(Point.class);
+    doReturn(head).when(board).getHead();
+    doReturn(List.of(neighbor)).when(cursor).getNearestPoints(any());
+    doReturn(Direction.DOWN).when(cursor).getDirection(head, neighbor);
+    // when
+    String actual = subject.moveNearestSafePoint(board);
+
+    // then
+    assertEquals(Direction.DOWN.toString(), actual);
+    verify(cursor).getNearestPoints(head);
+    verify(cursor).getDirection(head, neighbor);
+  }
+
+  @Test
+  @DisplayName("moveNearestSafePoint - filters out barriers and tail")
+  void moveNearestSafePoint_filtersOutBarriersAndTail() {
+    Point head = mock(Point.class);
+    Point neighbor1 = mock(Point.class);
+    Point neighbor2 = mock(Point.class);
+    Point neighbor3 = mock(Point.class);
+    doReturn(head).when(board).getHead();
+    doReturn(List.of(neighbor1, neighbor2, neighbor3)).when(cursor).getNearestPoints(any());
+    doReturn(List.of(neighbor1)).when(board).getHero();
+    doReturn(List.of(neighbor2)).when(board).getBarriers();
+    doReturn(Direction.DOWN).when(cursor).getDirection(head, neighbor3);
+
+    // when
+    String actual = subject.moveNearestSafePoint(board);
+
+    // then
+    assertEquals(Direction.DOWN.toString(), actual);
+    verify(cursor).getNearestPoints(head);
+    verify(cursor).getDirection(head, neighbor3);
+  }
+
+  @Test
+  @DisplayName("moveNearestSafePoint - doesn't crush when no available points")
+  void moveNearestSafePoint_doesNotCrashWhenNoAvailablePoints() {
+    Point head = mock(Point.class);
+    doReturn(head).when(board).getHead();
+    doReturn(Collections.emptyList()).when(cursor).getNearestPoints(any());
+    doReturn(mock(Point.class)).when(cursor).moveToDirection(any(), any());
+    doReturn(Direction.DOWN).when(cursor).getDirection(any(), any());
+
+    // when & then
+    assertNotNull(subject.moveNearestSafePoint(board));
   }
 
 }
